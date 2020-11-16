@@ -1,9 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-rcParams.update({'figure.autolayout': True})
-
-np.random.seed(999)
+import os
 
 
 def exp_dist_PDF(x, l):
@@ -11,7 +9,7 @@ def exp_dist_PDF(x, l):
     return l*np.exp(-l*x)
 
 
-def plot_mixture_pdf(pi_1, pi_2, l_1, l_2, name, ylab):
+def plot_mixture_pdf(pi_1, pi_2, l_1, l_2, name, ylab, iters=False):
 
     # generate samples
     num_samples = 10000
@@ -25,11 +23,14 @@ def plot_mixture_pdf(pi_1, pi_2, l_1, l_2, name, ylab):
         exp_mixture[i] = [x_input, mix_y]
 
     # save PDF data
-    plt.scatter(exp_mixture[:, 0], exp_mixture[:, 1], marker=".")
+    plt.plot(exp_mixture[:, 0], exp_mixture[:, 1])
     plt.title(name)
     plt.xlabel(r'$x$')
     plt.ylabel(ylab)
-    plt.savefig("plots/" +name+".png")
+    if iters:
+        plt.savefig("plots/iters/" + name + ".png")
+    else:
+        plt.savefig("plots/" +name+".png")
     plt.clf()
     plt.close()
 
@@ -192,6 +193,22 @@ def rejection_sampling(l_1, l_2, pi_1, pi_2, num_samples = 20):
 
 if __name__ == "__main__":
 
+    # Set to true for plot of each iteration
+    DETAILED_OUTPUT = False
+
+    # create directories for saving figures
+    if not os.path.exists("plots"):
+        os.makedirs("plots")
+
+    if DETAILED_OUTPUT:
+        if not os.path.exists("plots/iters"):
+            os.makedirs("plots/iters")
+
+
+
+    np.random.seed(999)
+    rcParams.update({'figure.autolayout': True})
+
     # true parameters
     true_l1   = 1
     true_l2   = 3
@@ -219,19 +236,23 @@ if __name__ == "__main__":
     plot_mixture_pdf(l_1= estimated_l1, l_2= estimated_l2, pi_1= estimated_pi_1, pi_2=estimated_pi_2
                      , name="EstimatedExponentialMixture", ylab=r'$f(x; \hat{\theta})$')
 
-    # plot estimated parameter pdf for some iterations
-    # save every x steps
-    save_every = 1
-    for i in range(theta_history.shape[0]):
-        estimate_at_i = theta_history[i]
-        if (i % save_every) == 0:
-            estimated_l1 = estimate_at_i[0]
-            estimated_l2 = estimate_at_i[1]
-            estimated_pi_1 = estimate_at_i[2]
-            estimated_pi_2 = estimate_at_i[3]
-            # plot estimated parameters pdf for current step
-            plot_mixture_pdf(l_1=estimated_l1, l_2=estimated_l2, pi_1=estimated_pi_1, pi_2=estimated_pi_2
-                             , name="EstimatedExponentialMixture_Iteration"+str(i), ylab=r'$f(x; \hat{\theta})$')
+    if DETAILED_OUTPUT:
+        # plot estimated parameter pdf for some iterations
+        # save every x steps
+        save_every = 1
+        for i in range(theta_history.shape[0]):
+            estimate_at_i = theta_history[i]
+            if (i % save_every) == 0:
+                estimated_l1 = estimate_at_i[0]
+                estimated_l2 = estimate_at_i[1]
+                estimated_pi_1 = estimate_at_i[2]
+                estimated_pi_2 = estimate_at_i[3]
+                # plot estimated parameters pdf for current step
+                plot_mixture_pdf(l_1=estimated_l1, l_2=estimated_l2, pi_1=estimated_pi_1, pi_2=estimated_pi_2
+                                 , name="EstimatedExponentialMixture_Iteration"+str(i), ylab=r'$f(x; \hat{\theta})$',
+                                 iters=True)
+
 
 
     plot_log_likelihood_history(LL_history)
+    np.savetxt("plots/theta_history.txt", theta_history)
