@@ -205,8 +205,9 @@ if __name__ == "__main__":
             os.makedirs("plots/iters")
 
 
-
+    # fix seed for reproducibility
     np.random.seed(999)
+    # plotting params
     rcParams.update({'figure.autolayout': True})
 
     # true parameters
@@ -220,7 +221,7 @@ if __name__ == "__main__":
                      , name="ExponentialMixture", ylab=r'$f(x; \theta)$')
     # generate n observations
     data = rejection_sampling(l_1=true_l1, l_2=true_l2, pi_1=true_pi_1, pi_2=true_pi_2)
-    # run ENM
+    # run EM
     theta_history, LL_history = EM(data)
 
     # grab the last estimate of our parameters
