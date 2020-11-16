@@ -4,8 +4,9 @@ from matplotlib import rcParams
 import os
 
 
+# pdf of exponential distribution
 def exp_dist_PDF(x, l):
-
+    # lambda e^(-lambnda x)
     return l*np.exp(-l*x)
 
 
