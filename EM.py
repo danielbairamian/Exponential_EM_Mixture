@@ -167,28 +167,22 @@ def EM(data):
     return theta_history, np.asarray(log_likelihood_history)
 
 
-# rejection sampling from mixture PDF
-def rejection_sampling(l_1, l_2, pi_1, pi_2, num_samples = 20):
-    # count number of accepted samples
-    num_accepted = 0
-    # max of our pdf
-    max_pdf = pi_1 * exp_dist_PDF(0, l_1) + pi_2 * exp_dist_PDF(0, l_2)
-    # store all samples here
+# sample from mixture
+def mixture_sampling(l_1, l_2, pi_1, pi_2, num_samples = 20):
+    # store all samples in this array
     samples = []
-    # keep iterating until we get the desired number of samples
-    while num_accepted != num_samples:
-        # uniform sample from a support
-        x_i = np.random.rand()*10
-        # get the pdf of that sample
-        pdf_y = pi_1 * exp_dist_PDF(x_i, l_1) + pi_2 * exp_dist_PDF(x_i, l_2)
-        # uniform sample from our support of PDFs
-        u_i = np.random.rand()*max_pdf
-        # if our random sample is less than the sampled pdf
-        # accept the sample
-        if u_i < pdf_y:
-            samples.append(x_i)
-            num_accepted += 1
-
+    # for all samples
+    for _ in range(num_samples):
+        # randomly sample from an exponential distribution
+        mix_choice = np.random.rand()
+        # sample from the chosen one
+        if mix_choice < pi_1:
+            xi = np.random.exponential(scale=1/l_1)
+        else:
+            xi = np.random.exponential(scale=1/l_2)
+        # store the sample
+        samples.append(xi)
+    # return the samples as a numpy array
     return np.asarray(samples)
 
 
@@ -207,7 +201,7 @@ if __name__ == "__main__":
 
 
     # fix seed for reproducibility
-    np.random.seed(999)
+    np.random.seed(0x5eed)
     # plotting params
     rcParams.update({'figure.autolayout': True})
 
@@ -221,7 +215,7 @@ if __name__ == "__main__":
     plot_mixture_pdf(l_1=true_l1, l_2=true_l2, pi_1=true_pi_1, pi_2=true_pi_2
                      , name="ExponentialMixture", ylab=r'$f(x; \theta)$')
     # generate n observations
-    data = rejection_sampling(l_1=true_l1, l_2=true_l2, pi_1=true_pi_1, pi_2=true_pi_2)
+    data = mixture_sampling(l_1=true_l1, l_2=true_l2, pi_1=true_pi_1, pi_2=true_pi_2)
     # run EM
     theta_history, LL_history = EM(data)
 
@@ -241,7 +235,7 @@ if __name__ == "__main__":
     if DETAILED_OUTPUT:
         # plot estimated parameter pdf for some iterations
         # save every x steps
-        save_every = 1
+        save_every = 10
         for i in range(theta_history.shape[0]):
             estimate_at_i = theta_history[i]
             if (i % save_every) == 0:
